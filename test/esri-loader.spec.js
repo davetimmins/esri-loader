@@ -4,7 +4,7 @@ describe('esri-loader', function () {
       // remove previously stubbed require function
       delete window.require;
       // esri-loader script has not yet been loaded
-      document.querySelector = jasmine.createSpy('querySelector').and.returnValue(null);
+      spyOn(document, 'querySelector').and.returnValue(null);
     });
     it('isLoaded should be false', function () {
       expect(esriLoader.isLoaded())
@@ -30,7 +30,10 @@ describe('esri-loader', function () {
         esriLoader.bootstrap();
       });
       it('should default to latest version', function () {
-        expect(scriptEl.src).toEqual('https://js.arcgis.com/4.3/');
+        expect(scriptEl.src).toEqual('https://js.arcgis.com/4.5/');
+      });
+      it('should not have set dojoConfig', function () {
+        expect(window.dojoConfig).not.toBeDefined();
       });
     });
     describe('with different API version', function () {
@@ -57,6 +60,86 @@ describe('esri-loader', function () {
         expect(context.bootstrapCallback).toHaveBeenCalledTimes(1);
       });
     });
+    describe('with dojoConfig option', function () {
+      var dojoConfig = {
+        async: true,
+        packages: [
+          {
+            location: 'path/to/somelib',
+            name: 'somelib'
+          }
+        ]
+      };
+      beforeAll(function () {
+        spyOn(document.body, 'appendChild').and.callFake(function (el) {
+          // call the onload callback
+          el.onload();
+        });
+        esriLoader.bootstrap(undefined, {
+          dojoConfig: dojoConfig
+        });
+      });
+      it('should have set global dojoConfig', function () {
+        expect(window.dojoConfig).toEqual(dojoConfig);
+      });
+    });
+    describe('when called twice', function () {
+      var scriptEl;
+      var context = {
+        bootstrapCallback: function () {}
+      };
+      beforeAll(function () {
+        spyOn(document.body, 'appendChild').and.callFake(function (el) {
+          // hold onto script element for assertions below
+          scriptEl = el;
+          // call the onload callback
+          el.onload();
+        });
+        spyOn(document, 'querySelector').and.callFake(function() {
+          return scriptEl;
+        });
+        spyOn(context, 'bootstrapCallback');
+      });
+      describe('w/ a callback', function () {
+        it('should pass an error to the callback', function () {
+          esriLoader.bootstrap(context.bootstrapCallback, {
+            url: 'https://js.arcgis.com/3.20'
+          });
+          esriLoader.bootstrap(context.bootstrapCallback, {
+            url: 'https://js.arcgis.com/3.20'
+          });
+          expect(context.bootstrapCallback.calls.argsFor(1)[0].message).toEqual('The ArcGIS API for JavaScript is already loaded.');
+        });
+      });
+      describe('w/o a callback', function () {
+        it('should not throw when called w/o a callback', function () {
+          esriLoader.bootstrap(null, {
+            url: 'https://js.arcgis.com/3.20'
+          });
+          esriLoader.bootstrap(null, {
+            url: 'https://js.arcgis.com/3.20'
+          });
+          expect(1).toEqual(1);
+        });
+      });
+    });
+    describe('when loading an invalid url', function () {
+      it('should pass an error to the callback', function (done) {
+        esriLoader.bootstrap((err) => {
+          expect(err.message.indexOf('There was an error attempting to load')).toEqual(0);
+          done();
+        }, {
+          url: 'not a valid url'
+        });
+      });
+      afterAll(function () {
+        // remove script tag
+        const script = document.querySelector('script[data-esri-loader]');
+        if (script) {
+          script.parentElement.removeChild(script);
+        }
+      });
+    });
   });
 
   describe('when loading modules', function () {
@@ -72,7 +155,7 @@ describe('esri-loader', function () {
         callback();
       };
       var esriLoaderScript = document.createElement('script');
-      document.querySelector = jasmine.createSpy('querySelector').and.returnValue(esriLoaderScript);
+      spyOn(document, 'querySelector').and.returnValue(esriLoaderScript);
       spyOn(context, 'requireCallback');
       esriLoader.dojoRequire(expectedModuleNames, context.requireCallback);
     });

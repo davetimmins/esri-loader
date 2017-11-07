@@ -40,7 +40,6 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['mocha'],
 
-
     // web server port
     port: 9876,
 
@@ -60,7 +59,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['PhantomJS'],
+    browsers: ['Chrome'],
 
 
     // Continuous Integration mode
@@ -69,12 +68,18 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+    coverageReporter: {
+      type : 'text',
+      dir : 'coverage/'
+    }
   };
 
-  // test in chrome too locally
+  // run code coverage locally
   if (!isTravis) {
-    configuration.browsers.push('Chrome');
+    configuration.preprocessors[builtFile] = ['coverage'];
+    configuration.reporters.push('coverage');
   }
 
   config.set(configuration);

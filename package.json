@@ -1,13 +1,14 @@
 {
   "name": "esri-loader",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "A tiny library to help load ArcGIS API for JavaScript modules in non-Dojo applications",
   "main": "dist/esri-loader.js",
   "module": "src/esri-loader.js",
   "types": "src/esri-loader.d.ts",
   "scripts": {
+    "lint": "node_modules/.bin/tslint -c tslint.json 'src/esri-loader.ts'",
     "test": "npm run build:release && karma start --single-run=true",
-    "build": "tsc && rollup -c",
+    "build": "npm run lint && tsc && rollup -c",
     "uglify": "uglifyjs ./dist/esri-loader.js -m -c -o ./dist/esri-loader.min.js --source-map ./dist/esri-loader.min.js.map",
     "build:release": "npm run build && npm run uglify",
     "prepublish": "npm run build:release",
@@ -16,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tomwayson/esri-loader.git"
+    "url": "git+https://github.com/Esri/esri-loader.git"
   },
   "keywords": [
     "Esri",
@@ -29,19 +30,20 @@
   "author": "Tom Wayson <tom@tomwayson.com> (https://tomwayson.com)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/tomwayson/esri-loader/issues"
+    "url": "https://github.com/Esri/esri-loader/issues"
   },
-  "homepage": "https://github.com/tomwayson/esri-loader#readme",
+  "homepage": "https://github.com/Esri/esri-loader",
   "devDependencies": {
     "concurrently": "^3.4.0",
     "jasmine-core": "^2.5.2",
-    "karma": "^1.6.0",
+    "karma": "^1.7.1",
     "karma-chrome-launcher": "^2.0.0",
+    "karma-coverage": "^1.1.1",
     "karma-jasmine": "^1.1.0",
     "karma-mocha-reporter": "^2.2.3",
-    "karma-phantomjs-launcher": "^1.0.4",
     "onchange": "^3.2.1",
     "rollup": "^0.41.6",
+    "tslint": "^5.7.0",
     "typescript": "^2.0.10",
     "uglify-js": "^2.8.22"
   }
